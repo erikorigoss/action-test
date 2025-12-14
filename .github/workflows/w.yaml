@@ -29,6 +29,7 @@ jobs:
           if [[ "$num_charts_changed" -gt "1" ]]; then
             echo "error=Multiple chart changes detected in charts folder." >> "$GITHUB_OUTPUT"
             echo "result=fail" >> "$GITHUB_OUTPUT"
+            exit 1
           elif [[ "$num_charts_changed" -eq "1" ]]; then
             echo "result=ok" >> "$GITHUB_OUTPUT"
             chart_name="${charts_dirs_changed//charts\/}"
