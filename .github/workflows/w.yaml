@@ -33,7 +33,7 @@ jobs:
             if [[ "${files_changed[*]}" =~ "charts/${chart_name}/values.yaml" ]]; then
               echo "values-updated=true" >> "$GITHUB_OUTPUT"
             fi
-          elif [[ "$num_charts_changed" -ge "1" ]]; then
+          elif [[ "$num_charts_changed" -gt "1" ]]; then
             echo "error=Multiple chart changes detected in charts folder." >> "$GITHUB_OUTPUT"
             echo "result=error" >> "$GITHUB_OUTPUT"
           fi
