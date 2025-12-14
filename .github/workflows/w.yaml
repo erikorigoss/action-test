@@ -26,14 +26,15 @@ jobs:
           # Using grep -c as a better alternative to wc -l when dealing with empty strings."
           num_charts_changed="$(echo "$charts_dirs_changed" | grep -c "charts" || true)"
           echo $num_charts_changed
-          if [[ "$num_charts_changed" -eq "1" ]]; then
+          if [[ "$num_charts_changed" -gt "1" ]]; then
+            echo "error=Multiple chart changes detected in charts folder." >> "$GITHUB_OUTPUT"
+            echo "result=error" >> "$GITHUB_OUTPUT"
+          elif [[ "$num_charts_changed" -eq "1" ]]; then
             echo "result=ok" >> "$GITHUB_OUTPUT"
             chart_name="${charts_dirs_changed//charts\/}"
             echo "chart=${chart_name}" >> "$GITHUB_OUTPUT"
             if [[ "${files_changed[*]}" =~ "charts/${chart_name}/values.yaml" ]]; then
               echo "values-updated=true" >> "$GITHUB_OUTPUT"
             fi
-          elif [[ "$num_charts_changed" -gt "1" ]]; then
-            echo "error=Multiple chart changes detected in charts folder." >> "$GITHUB_OUTPUT"
-            echo "result=error" >> "$GITHUB_OUTPUT"
           fi
+          
