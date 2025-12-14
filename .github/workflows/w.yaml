@@ -2,8 +2,7 @@
 name: Lint and Test Charts
 on:
   pull_request:
-    paths:
-      - 'charts/**'
+
 jobs:
   lint-test:
     runs-on: ubuntu-latest
@@ -23,21 +22,17 @@ jobs:
           files_changed="$(sed -nr 's/[\-\+]{3} [ab]\/(.*)/\1/p' $TEMP_FILE | sort | uniq)"
           # Adding || true to avoid "Process exited with code 1" errors
           charts_dirs_changed="$(echo "$files_changed" | xargs dirname | grep -o "charts/[^/]*" | sort | uniq || true)"
+          echo $charts_dirs_changed
           # Using grep -c as a better alternative to wc -l when dealing with empty strings."
           num_charts_changed="$(echo "$charts_dirs_changed" | grep -c "charts" || true)"
-          if [[ "$num_charts_changed" -eq "1" ]]; then
-            # Changes done in only one chart -> OK
+          if [[ "$num_charts_changed" -gt "1" ]]; then
+            echo "result=fail" >> "$GITHUB_OUTPUT"
+            echo "error=Multiple chart changes detected in charts folder." && exit 1
+          elif [[ "$num_charts_changed" -eq "1" ]]; then
             echo "result=ok" >> "$GITHUB_OUTPUT"
-            # Extra output: chart name
             chart_name="${charts_dirs_changed//charts\/}"
-            echo "chart=${chart_name}" >> "$GITHUB_OUTPUT"
-            # Extra output: values-updated
-            # shellcheck disable=SC2076
             if [[ "${files_changed[*]}" =~ "charts/${chart_name}/values.yaml" ]]; then
               echo "values-updated=true" >> "$GITHUB_OUTPUT"
             fi
-          elif [[ "$num_charts_changed" -le "0" ]]; then
-            # Changes done in the bitnami/ folder but not inside a chart subfolder -> SKIP
-            echo "error=No changes detected in charts. The rest of the tests will be skipped." >> "$GITHUB_OUTPUT"
-            echo "result=skip" >> "$GITHUB_OUTPUT"
           fi
+          
