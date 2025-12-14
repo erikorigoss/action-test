@@ -27,18 +27,13 @@ jobs:
           num_charts_changed="$(echo "$charts_dirs_changed" | grep -c "charts" || true)"
           echo $num_charts_changed
           if [[ "$num_charts_changed" -eq "1" ]]; then
-            # Changes done in only one chart -> OK
             echo "result=ok" >> "$GITHUB_OUTPUT"
-            # Extra output: chart name
             chart_name="${charts_dirs_changed//charts\/}"
             echo "chart=${chart_name}" >> "$GITHUB_OUTPUT"
-            # Extra output: values-updated
-            # shellcheck disable=SC2076
             if [[ "${files_changed[*]}" =~ "charts/${chart_name}/values.yaml" ]]; then
               echo "values-updated=true" >> "$GITHUB_OUTPUT"
             fi
-          elif [[ "$num_charts_changed" -le "0" ]]; then
-            # Changes done in the bitnami/ folder but not inside a chart subfolder -> SKIP
-            echo "error=No changes detected in charts. The rest of the tests will be skipped." >> "$GITHUB_OUTPUT"
-            echo "result=skip" >> "$GITHUB_OUTPUT"
+          elif [[ "$num_charts_changed" -ge "1" ]]; then
+            echo "error=Multiple chart changes detected in charts folder." >> "$GITHUB_OUTPUT"
+            echo "result=error" >> "$GITHUB_OUTPUT"
           fi
